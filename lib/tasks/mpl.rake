@@ -54,6 +54,32 @@ namespace :mpl do
       evaluator.eval_for_static_records(measure)
     end
   end
+  
+   desc 'Roll the date of every aspect of each patient forward or backwards [years, months, days] depending on sign'
+ task :roll, :years, :months, :days, :needs=> :environment do |t, args|
+	y = args[:years].to_i
+	m = args[:months].to_i
+	d = args[:days].to_i
+	count = 0
+	puts(Record.where('test_id' => nil).size)
+	Record.where('test_id' => nil).each do |patient|
+	count = count+1
+	puts("#{patient.last}   #{count}")
+	    patient.birthdate = Time.at(patient.birthdate).advance(:years => y, :months => m, :days => d)
+		patient_attributes = [patient.allergies, patient.care_goals,  patient.laboratory_tests, patient.encounters, patient.conditions, patient.procedures, patient.medications,  patient.social_history, patient.immunizations, patient.medical_equipment]	
+		patient_attributes.each do |a|
+		    a.each do |v|
+				if v.time != nil
+			        v.time = Time.at(v.time).advance(:years => y, :months => m, :days => d)
+				end
+	        end
+		end
+		patient.save
+	 end
+	#Rake::Task['mpl:eval'].invoke()
+	puts(count)
+  end
+
 
   desc 'Evaluate all measures for the entire master patient list and dumps results to text file for diffing'
   task :eval_diff_file => :environment do
