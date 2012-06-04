@@ -60,11 +60,20 @@ namespace :mpl do
 	y = args[:years].to_i
 	m = args[:months].to_i
 	d = args[:days].to_i
-	count = 0
-	puts(Record.where('test_id' => nil).size)
-	Record.where('test_id' => nil).each do |patient|
-	count = count+1
-	puts("#{patient.last}   #{count}")
+	Record.where('test_id' => nil).all.entries.each do |patient|
+		patient.measures.each do |ms|
+			ms= ms[1] 
+			ms.each_pair do |k,v|
+			    v.each_with_index do |n, i|
+					if v[i].kind_of?  Bignum or v[i].kind_of?  Fixnum
+			            v[i] = Time.at(n).advance(:years => y, :months => m, :days => d).to_i
+					else
+					    v[i]["date"] = Time.at(v[i]["date"]).advance(:years => y, :months => m, :days => d).to_i
+					end
+				end
+				ms[k] = v
+		    end
+		end
 	    patient.birthdate = Time.at(patient.birthdate).advance(:years => y, :months => m, :days => d)
 		patient_attributes = [patient.allergies, patient.care_goals,  patient.laboratory_tests, patient.encounters, patient.conditions, patient.procedures, patient.medications,  patient.social_history, patient.immunizations, patient.medical_equipment]	
 		patient_attributes.each do |a|
@@ -76,8 +85,8 @@ namespace :mpl do
 		end
 		patient.save
 	 end
-	#Rake::Task['mpl:eval'].invoke()
-	puts(count)
+	 puts "Date rolled Successfully"
+	  Rake::Task['mpl:eval'].invoke()
   end
 
 
