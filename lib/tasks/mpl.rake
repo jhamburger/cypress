@@ -86,7 +86,6 @@ namespace :mpl do
 		patient.save
 	 end
 	 puts "Date rolled Successfully"
-	  Rake::Task['mpl:eval'].invoke()
   end
 
 
